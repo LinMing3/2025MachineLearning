@@ -1,0 +1,6 @@
+backbone:
+  name: CLIPViTB32
+  kwargs:
+    model_name: "ViT-B/32"
+    freeze_backbone: false
+    output_dim: 512
