@@ -54,6 +54,8 @@ class CLIPViTB32(nn.Module):
         # 获取输出维度
         clip_dim = getattr(self.visual_encoder, 'output_dim', 512)
         
+        print(f"Using CLIP model: {model_name}, output_dim: {clip_dim}")
+
         # 特征投影层
         if output_dim != clip_dim:
             self.feature_projection = nn.Linear(clip_dim, output_dim)

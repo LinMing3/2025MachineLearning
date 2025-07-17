@@ -5,11 +5,11 @@ includes:
 - headers/misc.yaml
 - headers/model.yaml
 - headers/optimizer.yaml
-- classifiers/Baseline.yaml
+- classifiers/UnifiedFT.yaml
 - backbones/CLIPViT.yaml
 
-# Stanford Cars数据集配置
-data_root: D:/dataset/StanfordCar/StanfordCar
+
+data_root: D:/dataset/miniImageNet--ravi/miniImageNet--ravi
 image_size: 224
 use_memory: false
 augment: true
@@ -19,10 +19,20 @@ workers: 4
 
 # Fine-tuning模型配置
 classifier:
-  name: Baseline
+  name: UnifiedFT
   kwargs:
     feat_dim: 512  
-    num_class: 196  # Stanford Cars有196个类别
+    num_class: 100  # miniImageNet有100个训练类别
+    method_type: "Tip"  # Tip方法
+    use_fd_align: false  # 使用FD-Align特征对齐
+
+    alpha: 1.0  # 类别损失权重
+    beta: 0.5   # 虚假特征损失权重
+    spc_n: 60   # SPC孤立森林模板数
+    spc_k: 20   # SPC k-means聚类数
+
+    adapter_ratio: 0.5  # Tip-Adapter适配器降维比例
+
     inner_param:
       inner_optim:
         name: SGD
@@ -64,18 +74,18 @@ lr_scheduler:
 
 # Few-shot设置
 way_num: 5
-shot_num: 1  # 这个会在运行时修改
+shot_num: 16
 query_num: 15
 train_episode: 60000
 test_episode: 600
 test_way: 5
-test_shot: 1  # 这个会在运行时修改
+test_shot: 16
 test_query: 15
 
 # 保存和日志配置
 result_root: ./results
 save_interval: 50
-log_interval: 10000
+log_interval: 100
 log_level: info
 deterministic: true
 seed: 0

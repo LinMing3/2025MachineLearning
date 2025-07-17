@@ -1,0 +1,27 @@
+name: UnifiedFT
+kwargs:
+  feat_dim: 512
+  num_class: 64  # miniImageNet有64个训练类别
+  method_type: "Tip"      # FT/Tip/TipF/APE/APET
+  use_fd_align: true      # 是否使用FD-Align
+  
+  # FD-Align论文参数
+  alpha: 1.0              # 类别损失权重
+  beta: 0.5               # 虚假特征损失权重
+  spc_n: 60               # SPC孤立森林模板数
+  spc_k: 20               # SPC k-means聚类数
+  
+  # Tip-Adapter参数
+  adapter_ratio: 0.5      # 适配器降维比例
+  num_prompts: 16         # APE可学习提示数
+  
+  # 内层优化参数
+  inner_param:
+    inner_optim:
+      name: SGD
+      kwargs:
+        lr: 0.01
+        momentum: 0.9
+        weight_decay: 0.0005
+    inner_train_iter: 100
+    inner_batch_size: 4
