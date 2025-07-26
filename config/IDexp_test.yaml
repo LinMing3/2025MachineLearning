@@ -1,0 +1,96 @@
+# Stanford Cars数据集 FD-Align+FT 8-shot实验配置
+includes:
+- headers/data.yaml
+- headers/device.yaml
+- headers/misc.yaml
+- headers/model.yaml
+- headers/optimizer.yaml
+- classifiers/UnifiedFT.yaml
+- backbones/CLIPViT.yaml
+
+# 数据集配置
+data_root: D:/dataset/StanfordCar/StanfordCar
+image_size: 224
+use_memory: false
+augment: true
+augment_times: 1
+augment_times_query: 1
+workers: 4
+
+# Few-shot配置
+way_num: 5
+shot_num: 8           
+query_num: 15
+test_way: 5
+test_shot: 8
+test_query: 15
+episode_size: 1
+train_episode: 60000
+test_episode: 600
+batch_size: 8
+val_per_epoch: 1
+
+# FD-Align + FT分类器配置
+classifier:
+  name: UnifiedFT
+  kwargs:
+    feat_dim: 512
+    num_class: 86  
+    method_type: "FT"   # 使用FT方法
+    use_fd_align: true  # 启用FD-Align
+    
+    # FD-Align核心参数
+    alpha: 1.0          # 分类损失权重
+    beta: 0.5           # 虚假特征损失权重
+    spc_n: 60           # 虚假原型数量
+    spc_k: 20           # SPC聚类数
+    
+    # 内层优化参数
+    inner_param:
+      inner_optim:
+        name: SGD
+        kwargs:
+          lr: 0.01
+          momentum: 0.9
+          weight_decay: 0.0005
+      inner_train_iter: 100
+      inner_batch_size: 4
+
+# CLIP ViT-B/32 Backbone配置
+backbone:
+  name: CLIPViTB32
+  kwargs:
+    freeze_backbone: false  # 允许微调backbone
+    output_dim: 512        # CLIP ViT-B/32输出维度
+
+# 训练配置
+epoch: 60
+test_epoch: 5
+n_gpu: 1
+device_ids: 0
+
+# 优化器配置
+optimizer:
+  name: SGD
+  kwargs:
+    lr: 0.001
+    momentum: 0.9
+    weight_decay: 0.0005
+
+# 学习率调度器
+lr_scheduler:
+  name: StepLR
+  kwargs:
+    step_size: 20
+    gamma: 0.5
+
+# 保存配置
+save_interval: 10
+save_part: ["emb_func"]  # 只保存必要部分，避免磁盘空间问题
+result_root: c:/Users/LJR/Desktop/libfewshot_data_article
+
+# 日志配置
+log_level: info
+log_interval: 100
+seed: 0
+deterministic: true

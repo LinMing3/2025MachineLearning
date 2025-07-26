@@ -129,20 +129,60 @@ class APEModule(nn.Module):
     def __init__(self, feat_dim, num_class, num_prompts=16):
         super().__init__()
         self.num_prompts = num_prompts
+        self.feat_dim = feat_dim
+        
+        # 初始化可学习的prompt embeddings
         self.prompt_embeddings = nn.Parameter(torch.randn(num_prompts, feat_dim))
-        self.attention = nn.MultiheadAttention(feat_dim, num_heads=8, dropout=0.1)
+        
+        # 使用更简单的attention机制
+        self.query_proj = nn.Linear(feat_dim, feat_dim)
+        self.key_proj = nn.Linear(feat_dim, feat_dim)
+        self.value_proj = nn.Linear(feat_dim, feat_dim)
+        self.out_proj = nn.Linear(feat_dim, feat_dim)
+        
+        # 分类器
         self.classifier = nn.Linear(feat_dim, num_class)
+        self.dropout = nn.Dropout(0.1)
+        
+        # 标准化prompt embeddings
+        nn.init.normal_(self.prompt_embeddings, std=0.02)
         
     def forward(self, x):
-        # APE: learnable prompt attention
+        """
+        x: [batch_size, feat_dim]
+        """
         batch_size = x.size(0)
-        prompts = self.prompt_embeddings.unsqueeze(0).repeat(batch_size, 1, 1)
         
-        # Attention between features and prompts
-        attended_feat, _ = self.attention(x.unsqueeze(1), prompts, prompts)
-        attended_feat = attended_feat.squeeze(1)
+        # 1. 扩展prompt embeddings到batch
+        # prompts: [batch_size, num_prompts, feat_dim]
+        prompts = self.prompt_embeddings.unsqueeze(0).expand(batch_size, -1, -1)
         
-        return self.classifier(attended_feat)
+        # 2. 计算attention
+        # x作为query: [batch_size, 1, feat_dim]
+        query = self.query_proj(x).unsqueeze(1)  # [batch_size, 1, feat_dim]
+        
+        # prompts作为key和value
+        key = self.key_proj(prompts)    # [batch_size, num_prompts, feat_dim]
+        value = self.value_proj(prompts) # [batch_size, num_prompts, feat_dim]
+        
+        # 3. 简化的attention计算
+        # 计算attention scores
+        scores = torch.bmm(query, key.transpose(1, 2))  # [batch_size, 1, num_prompts]
+        scores = scores / (self.feat_dim ** 0.5)  # scale
+        attention_weights = F.softmax(scores, dim=-1)
+        
+        # 4. 应用attention weights到value
+        attended_prompts = torch.bmm(attention_weights, value)  # [batch_size, 1, feat_dim]
+        attended_prompts = attended_prompts.squeeze(1)  # [batch_size, feat_dim]
+        
+        # 5. 融合原始特征和attention后的prompt
+        fused_features = x + self.out_proj(attended_prompts)
+        fused_features = self.dropout(fused_features)
+        
+        # 6. 分类
+        output = self.classifier(fused_features)
+        
+        return output
 
 class UnifiedFT(FinetuningModel):
     def __init__(self, feat_dim, num_class, method_type="FT", 
@@ -335,10 +375,25 @@ class UnifiedFT(FinetuningModel):
     
     def _apet_method(self, feat):
         """APE-T方法（APE + 模板权重）"""
-        # 使用加权的模板
-        logits = self.ape_module(feat)
-        # 这里可以添加模板权重的影响
-        return logits
+        # 1. 获取基础APE logits
+        base_logits = self.ape_module(feat)
+        
+        # 2. 如果有模板权重，应用模板增强
+        if hasattr(self, 'template_weights') and self.use_fd_align:
+            # 使用加权的模板进行增强
+            batch_size = feat.size(0)
+            
+            # 计算模板加权的特征增强
+            template_weights = F.softmax(self.template_weights, dim=0)
+            
+            # 这里可以添加更复杂的模板权重逻辑
+            # 例如：基于模板权重调整logits
+            template_scale = template_weights.mean()  # 简化的模板影响
+            enhanced_logits = base_logits * (1 + 0.1 * template_scale)
+            
+            return enhanced_logits
+        else:
+            return base_logits
     
     def forward(self, batch):
         """主要的前向传播方法，训练器会调用这个方法"""
@@ -361,8 +416,20 @@ class UnifiedFT(FinetuningModel):
         image = image.to(self.device)
         target = target.to(self.device)
         
-        if target.min() >= 1:
-            target = target - 1
+        
+        if target.max() >= self.num_class:
+            # 将标签重新映射到 0 到 num_class-1 的范围
+            unique_labels = torch.unique(target)
+            target_mapping = {label.item(): i for i, label in enumerate(unique_labels)}
+            
+            # 创建新的标签张量
+            new_target = torch.zeros_like(target)
+            for old_label, new_label in target_mapping.items():
+                mask = target == old_label
+                new_target[mask] = new_label
+            target = new_target
+            
+    
     
         # 提取特征
         feat = self.emb_func(image)

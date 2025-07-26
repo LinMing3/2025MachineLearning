@@ -1,9 +1,9 @@
 name: UnifiedFT
 kwargs:
   feat_dim: 512
-  num_class: 64  # miniImageNet有64个训练类别
-  method_type: "Tip"      # FT/Tip/TipF/APE/APET
-  use_fd_align: true      # 是否使用FD-Align
+  num_class: 100  # miniImageNet有64个训练类别
+  method_type: "APET"      # FT/Tip/TipF/APE/APET
+  use_fd_align: false      # 是否使用FD-Align
   
   # FD-Align论文参数
   alpha: 1.0              # 类别损失权重
@@ -13,6 +13,8 @@ kwargs:
   
   # Tip-Adapter参数
   adapter_ratio: 0.5      # 适配器降维比例
+
+  # APE参数
   num_prompts: 16         # APE可学习提示数
   
   # 内层优化参数

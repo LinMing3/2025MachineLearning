@@ -23,8 +23,10 @@ classifier:
   kwargs:
     feat_dim: 512  
     num_class: 100  # miniImageNet有100个训练类别
-    method_type: "Tip"  # Tip方法
-    use_fd_align: false  # 使用FD-Align特征对齐
+    method_type: "FT" # 使用APET方法
+    use_fd_align: true  # 使用FD-Align特征对齐
+
+    num_prompts: 16  # APE可学习提示嵌入数量
 
     alpha: 1.0  # 类别损失权重
     beta: 0.5   # 虚假特征损失权重
@@ -83,7 +85,7 @@ test_shot: 16
 test_query: 15
 
 # 保存和日志配置
-result_root: ./results
+result_root: c:/Users/LJR/Desktop/libfewshot_data_article
 save_interval: 50
 log_interval: 100
 log_level: info
