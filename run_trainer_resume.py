@@ -8,7 +8,7 @@ import os
 from core.config import Config
 from core import Trainer
 
-PATH = "./results/Baseline-miniImageNet--ravi-Conv64F-5-5-Dec-01-2021-06-52-41"
+PATH = "D:/LibFewShot/results/ft_fda"
 
 
 def main(rank, config):

@@ -1,0 +1,83 @@
+# FT + FD-Align 1-shot 训练配置
+includes:
+- headers/data.yaml
+- headers/device.yaml
+- headers/misc.yaml
+- headers/model.yaml
+- headers/optimizer.yaml
+- classifiers/UnifiedFT.yaml
+- backbones/CLIPViT.yaml
+
+# 数据集配置
+data_root: D:/dataset/libfewshot_datasets/miniImageNet--ravi/miniImageNet--ravi
+image_size: 224
+use_memory: false
+augment: true
+augment_times: 1
+augment_times_query: 1
+workers: 4
+
+# 模型配置
+classifier:
+  name: UnifiedFT
+  kwargs:
+    feat_dim: 512
+    num_class: 1000  # miniImageNet训练类别数
+    method_type: "FT"  # Fine-tuning方法
+    use_fd_align: true  # 启用FD-Align特征对齐
+    
+    # FD-Align相关参数
+    alpha: 1.0  # 分类损失权重
+    beta: 0.5   # FD-Align损失权重
+    spc_n: 60   # Spurious Prototype Correction中的n参数
+    spc_k: 20   # Spurious Prototype Correction中的k参数
+
+backbone:
+  name: CLIPViTB32
+  kwargs:
+    freeze_backbone: false  # 允许backbone微调
+    output_dim: 512
+
+# Few-shot设置 (1-shot)
+way_num: 5
+shot_num: 1     # 1-shot设置
+query_num: 15
+train_episode: 10000
+test_episode: 600
+test_way: 5
+test_shot: 1
+test_query: 15
+
+# 训练配置
+batch_size: 4
+episode_size: 1
+epoch: 10
+n_gpu: 1
+device_ids: 0
+
+# 优化器配置
+optimizer:
+  name: SGD
+  kwargs:
+    lr: 0.0005
+    momentum: 0.9
+    weight_decay: 0.0005
+
+lr_scheduler:
+  name: StepLR
+  kwargs:
+    step_size: 20
+    gamma: 0.5
+
+# 保存和日志配置
+result_root: c:/Users/LJR/Desktop/libfewshot_data_article
+save_interval: 20
+log_interval: 100
+log_level: info
+deterministic: true
+seed: 0
+
+# 其他配置
+augment: true
+resume: false
+pretrain_path: null

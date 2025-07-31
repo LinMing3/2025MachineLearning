@@ -12,3 +12,4 @@ from .s2m2 import S2M2
 from .frn_pretrain import FRN_Pretrain
 from .metabaseline_pretrain import MetabaselinePretrain
 from .unified_ft import UnifiedFT
+from .wise_ft import WiSEFT

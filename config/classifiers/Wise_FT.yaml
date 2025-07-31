@@ -1,0 +1,18 @@
+# config/classifiers/WiSEFT_Standard.yaml
+name: WiSEFT
+kwargs:
+  feat_dim: 512
+  num_class: 64
+  alpha: 0.5                  # 经典的0.5插值
+  use_weight_interpolation: true
+  interpolation_mode: "standard"
+  
+  inner_param:
+    inner_optim:
+      name: SGD
+      kwargs:
+        lr: 0.01
+        momentum: 0.9
+        weight_decay: 0.0005
+    inner_train_iter: 100
+    inner_batch_size: 4

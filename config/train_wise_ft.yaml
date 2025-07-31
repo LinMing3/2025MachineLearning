@@ -1,0 +1,80 @@
+# config/wise_ft_miniImageNet.yaml
+includes:
+- headers/data.yaml
+- headers/device.yaml
+- headers/misc.yaml
+- headers/model.yaml
+- headers/optimizer.yaml
+- classifiers/Wise_FT.yaml
+- backbones/ViT.yaml
+
+data_root: D:/dataset/miniImageNet--ravi/miniImageNet--ravi
+image_size: 224
+use_memory: false
+augment: true
+augment_times: 1
+augment_times_query: 1
+workers: 4
+
+classifier:
+  name: WiSEFT
+  kwargs:
+    feat_dim: 768
+    num_class: 100            # miniImageNet训练类别数
+    alpha: 0.5
+    use_weight_interpolation: true
+
+backbone:
+  name: ViT
+  kwargs:
+    image_size: 224          # 输入图像尺寸
+    patch_size: 32           # patch大小，匹配CLIP ViT-B/32
+    dim: 768                 # hidden dimension
+    depth: 12                # transformer层数
+    heads: 12                # attention头数
+    mlp_dim: 3072            # MLP维度 (4 * dim)
+    pool: "mean"             # pooling方式
+    channels: 3              # RGB通道数
+    dim_head: 64             # 每个attention头的维度
+    dropout: 0.0             # dropout率
+    emb_dropout: 0.0         # embedding dropout率
+
+# Few-shot设置
+way_num: 5
+shot_num: 16
+query_num: 15
+train_episode: 1000
+test_episode: 600
+test_way: 5
+test_shot: 16
+test_query: 15
+
+# 训练参数
+epoch: 60
+batch_size: 4
+episode_size: 1
+epoch: 60
+n_gpu: 1
+device_ids: 0
+
+# 优化器配置
+optimizer:
+  name: SGD
+  kwargs:
+    lr: 0.00005
+    momentum: 0.9
+    weight_decay: 0.0005
+
+lr_scheduler:
+  name: StepLR
+  kwargs:
+    step_size: 20
+    gamma: 0.5
+
+# 保存和日志配置
+result_root: c:/Users/LJR/Desktop/libfewshot_data_article
+save_interval: 50
+log_interval: 100
+log_level: info
+deterministic: true
+seed: 0

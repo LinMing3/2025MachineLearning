@@ -1,3 +1,9 @@
+2025Spring nju智科 机器学习 论文复现
+
+论文[链接](https://github.com/skingorz/FD-Align.git)
+LibFewShot [链接](https://github.com/RL-VIG/LibFewShot.git)
+
+
 # [LibFewShot](https://arxiv.org/abs/2109.04898)
 Make few-shot learning easy.
 
